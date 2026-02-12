@@ -112,12 +112,20 @@ This reads `project.yml` and creates `ClinicalTrialHealth.xcodeproj`.
 
 ### 3. Build from CLI
 
+List available simulators to find a device name:
+
+```bash
+xcrun simctl list devices available | grep iPhone
+```
+
+Then build (substitute your device name if different):
+
 ```bash
 xcodebuild \
   -project ClinicalTrialHealth.xcodeproj \
   -scheme ClinicalTrialHealth \
   -sdk iphonesimulator \
-  -destination 'platform=iOS Simulator,name=iPhone 16' \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
   build
 ```
 
@@ -127,14 +135,14 @@ Boot the simulator and install:
 
 ```bash
 # Boot simulator
-xcrun simctl boot "iPhone 16"
+xcrun simctl boot "iPhone 17 Pro"
 
 # Build and install
 xcodebuild \
   -project ClinicalTrialHealth.xcodeproj \
   -scheme ClinicalTrialHealth \
   -sdk iphonesimulator \
-  -destination 'platform=iOS Simulator,name=iPhone 16' \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
   install
 
 # Or open in Xcode and press Cmd+R
