@@ -134,8 +134,11 @@ xcodebuild \
 Boot the simulator and install:
 
 ```bash
-# Boot simulator
+# Boot the simulator runtime
 xcrun simctl boot "iPhone 17 Pro"
+
+# Open the Simulator GUI window (boot alone doesn't display anything)
+open -a Simulator
 
 # Build and install
 xcodebuild \
