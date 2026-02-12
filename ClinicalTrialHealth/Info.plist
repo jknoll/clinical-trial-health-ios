@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>NSHealthShareUsageDescription</key>
+	<string>Clinical Trial Health reads your health data (vitals, lab results, medications, and activity) to match you with eligible clinical trials. Your data is sent only to the session you specify.</string>
+	<key>NSHealthClinicalHealthRecordsShareUsageDescription</key>
+	<string>Clinical Trial Health reads your clinical records (lab results, medications, conditions) to provide accurate eligibility scoring for clinical trials.</string>
+</dict>
+</plist>
