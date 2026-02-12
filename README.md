@@ -53,15 +53,25 @@ sudo xcodebuild -license accept
 
 **Step 1d — Install additional components**
 
-Launch Xcode once to trigger its first-run setup. It will download simulator runtimes and other components:
+Xcode's first launch presents a dialog to install platform support and simulator runtimes. You only need **one**:
+
+| Component | Needed? | Why |
+|---|---|---|
+| **iOS 18 Simulator** | **Yes** | Required to build and run the app in the simulator |
+| macOS platform support | No | This is an iOS-only app |
+| watchOS Simulator | No | Not used |
+| tvOS Simulator | No | Not used |
+| visionOS Simulator | No | Not used |
+
+Launch Xcode to trigger the dialog:
 
 ```bash
 open -a Xcode
 ```
 
-Wait for the "Installing components..." dialog to finish, then quit Xcode.
+In the **Components** window, check only **iOS 18** and click Install. Wait for it to finish (~5 GB download), then quit Xcode.
 
-Alternatively, install the iOS 18 simulator runtime from the CLI:
+Alternatively, install just the iOS simulator runtime from the CLI (skips the GUI entirely):
 
 ```bash
 xcodebuild -downloadPlatform iOS
