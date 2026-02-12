@@ -57,7 +57,7 @@ Xcode's first launch presents a dialog to install platform support and simulator
 
 | Component | Needed? | Why |
 |---|---|---|
-| **iOS 18 Simulator** | **Yes** | Required to build and run the app in the simulator |
+| **iOS Simulator** (latest available, e.g. iOS 26) | **Yes** | Required to build and run the app in the simulator |
 | macOS platform support | No | This is an iOS-only app |
 | watchOS Simulator | No | Not used |
 | tvOS Simulator | No | Not used |
@@ -69,7 +69,7 @@ Launch Xcode to trigger the dialog:
 open -a Xcode
 ```
 
-In the **Components** window, check only **iOS 18** and click Install. Wait for it to finish (~5 GB download), then quit Xcode.
+In the **Components** window, check only the **iOS Simulator** (whatever version is offered — e.g. iOS 26) and click Install. Wait for it to finish (~5 GB download), then quit Xcode.
 
 Alternatively, install just the iOS simulator runtime from the CLI (skips the GUI entirely):
 
@@ -90,7 +90,7 @@ xcodebuild -version
 
 # Confirm simulator runtimes are available:
 xcrun simctl list runtimes | grep iOS
-# Expected: iOS 18.x
+# Expected: a line like "iOS 26.2 (26.2 - 24F5053a) - com.apple.CoreSimulator..."
 ```
 
 ### 2. Generate the Xcode Project
