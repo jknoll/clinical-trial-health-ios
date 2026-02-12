@@ -20,20 +20,67 @@ A SwiftUI iOS app that reads HealthKit data on-device and sends it directly to t
 
 ### 1. Install Xcode
 
-If Xcode is not already installed:
+You need the full Xcode IDE (not just Command Line Tools). Check if you already have it:
 
 ```bash
-# Option A: Mac App Store
-# Search for "Xcode" and install
+xcode-select -p
+# If it prints /Applications/Xcode.app/Contents/Developer, you're good — skip to step 2.
+# If it prints /Library/Developer/CommandLineTools or errors, continue below.
+```
 
-# Option B: Direct download
-# Visit https://developer.apple.com/xcode/
+**Step 1a — Download Xcode**
 
-# After installation, set the active developer directory:
+Pick one method:
+
+- **Mac App Store (easiest):** Open the App Store, search "Xcode", click Get/Install. This auto-installs to `/Applications/Xcode.app`.
+- **Direct download:** Go to https://developer.apple.com/xcode/ and click the download link. Requires a free Apple ID. Move the `.app` to `/Applications/` after extracting.
+
+> Xcode is ~3 GB to download and ~35 GB installed. Make sure you have disk space.
+
+**Step 1b — Set the active developer directory**
+
+After installation completes, point `xcode-select` to the full Xcode:
+
+```bash
 sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+```
 
-# Accept the license:
+**Step 1c — Accept the license**
+
+```bash
 sudo xcodebuild -license accept
+```
+
+**Step 1d — Install additional components**
+
+Launch Xcode once to trigger its first-run setup. It will download simulator runtimes and other components:
+
+```bash
+open -a Xcode
+```
+
+Wait for the "Installing components..." dialog to finish, then quit Xcode.
+
+Alternatively, install the iOS 18 simulator runtime from the CLI:
+
+```bash
+xcodebuild -downloadPlatform iOS
+```
+
+**Step 1e — Verify**
+
+```bash
+# Confirm Xcode is active:
+xcode-select -p
+# Expected: /Applications/Xcode.app/Contents/Developer
+
+# Confirm version:
+xcodebuild -version
+# Expected: Xcode 16.x
+
+# Confirm simulator runtimes are available:
+xcrun simctl list runtimes | grep iOS
+# Expected: iOS 18.x
 ```
 
 ### 2. Generate the Xcode Project
