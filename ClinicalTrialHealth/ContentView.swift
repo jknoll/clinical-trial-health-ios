@@ -8,6 +8,10 @@ struct ContentView: View {
     @State private var isSending = false
     @State private var hasFetched = false
     @State private var importResponse: APIClient.ImportResponse?
+    @State private var backendURL = APIClient.baseURL
+    @State private var showScanner = false
+    @State private var showBackendURL = false
+    @State private var scannedCode: String?
 
     var body: some View {
         NavigationStack {
@@ -20,6 +24,39 @@ struct ContentView: View {
                     Text("Enter the session ID from the web app to link your health data.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
+
+                    Button {
+                        withAnimation {
+                            showBackendURL.toggle()
+                        }
+                    } label: {
+                        HStack {
+                            Text("Backend URL")
+                            Spacer()
+                            Image(systemName: showBackendURL ? "chevron.up" : "chevron.down")
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .foregroundStyle(.primary)
+
+                    if showBackendURL {
+                        TextField("Backend URL", text: $backendURL)
+                            .keyboardType(.URL)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                            .onChange(of: backendURL) { _, newValue in
+                                APIClient.baseURL = newValue
+                            }
+                        Text("URL of the Clinical Trial Compass backend server.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Button {
+                        showScanner = true
+                    } label: {
+                        Label("Scan QR Code", systemImage: "qrcode.viewfinder")
+                    }
                 }
 
                 // HealthKit authorization & fetch
@@ -104,7 +141,21 @@ struct ContentView: View {
                 }
                 #endif
             }
-            .navigationTitle("Clinical Trial Health")
+            .sheet(isPresented: $showScanner) {
+                QRScannerView(scannedCode: $scannedCode, isPresented: $showScanner)
+            }
+            .onChange(of: scannedCode) { _, newValue in
+                guard let code = newValue,
+                      let data = code.data(using: .utf8),
+                      let json = try? JSONSerialization.jsonObject(with: data) as? [String: String] else { return }
+                if let sid = json["session_id"] { sessionId = sid }
+                if let url = json["backend_url"] {
+                    backendURL = url
+                    APIClient.baseURL = url
+                }
+            }
+            .navigationTitle("Clinical Trial Compass")
+            .navigationBarTitleDisplayMode(.inline)
         }
     }
 

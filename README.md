@@ -118,14 +118,16 @@ List available simulators to find a device name:
 xcrun simctl list devices available | grep iPhone
 ```
 
-Then build (substitute your device name if different):
+Then build (substitute your device name if different). **iPhone SE** is
+recommended over larger devices — it uses significantly less memory, which
+matters on 16 GB machines:
 
 ```bash
 xcodebuild \
   -project ClinicalTrialHealth.xcodeproj \
   -scheme ClinicalTrialHealth \
   -sdk iphonesimulator \
-  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+  -destination 'platform=iOS Simulator,name=iPhone 16e' \
   build
 ```
 
@@ -135,7 +137,7 @@ Boot the simulator and install:
 
 ```bash
 # Boot the simulator runtime
-xcrun simctl boot "iPhone 17 Pro"
+xcrun simctl boot "iPhone 16e"
 
 # Open the Simulator GUI window (boot alone doesn't display anything)
 open -a Simulator
@@ -145,7 +147,7 @@ xcodebuild \
   -project ClinicalTrialHealth.xcodeproj \
   -scheme ClinicalTrialHealth \
   -sdk iphonesimulator \
-  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' \
+  -destination 'platform=iOS Simulator,name=iPhone 16e' \
   install
 
 # Or open in Xcode and press Cmd+R

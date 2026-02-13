@@ -4,9 +4,9 @@ import Foundation
 struct APIClient {
 
     #if targetEnvironment(simulator)
-    static let baseURL = "http://localhost:8100"
+    static var baseURL = "http://localhost:8100"
     #else
-    static let baseURL = "https://clinical-trial-copilot.fly.dev"
+    static var baseURL = "https://clinical-trial-copilot.fly.dev"
     #endif
 
     /// Import payload matching the backend `HealthKitImport` Pydantic model.

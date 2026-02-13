@@ -1,4 +1,4 @@
-name: ClinicalTrialHealth
+name: ClinicalTrialCompass
 options:
   bundleIdPrefix: com.clinicaltrialcopilot
   deploymentTarget:
@@ -17,11 +17,18 @@ targets:
       - ClinicalTrialHealth
     settings:
       base:
-        INFOPLIST_FILE: ClinicalTrialHealth/Info.plist
         CODE_SIGN_ENTITLEMENTS: ClinicalTrialHealth/ClinicalTrialHealth.entitlements
         PRODUCT_BUNDLE_IDENTIFIER: com.clinicaltrialcopilot.health
         DEVELOPMENT_TEAM: ""
         CODE_SIGN_STYLE: Automatic
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    info:
+      path: ClinicalTrialHealth/Info.plist
+      properties:
+        CFBundleDisplayName: "CT Compass"
+        NSHealthShareUsageDescription: "Clinical Trial Compass reads your health data (vitals, lab results, medications, and activity) to match you with eligible clinical trials. Your data is sent only to the session you specify."
+        NSHealthClinicalHealthRecordsShareUsageDescription: "Clinical Trial Compass reads your clinical records (lab results, medications, conditions) to provide accurate eligibility scoring for clinical trials."
+        NSCameraUsageDescription: "Clinical Trial Compass uses the camera to scan QR codes displayed by the web app for quick session pairing."
     entitlements:
       path: ClinicalTrialHealth/ClinicalTrialHealth.entitlements
       properties:
