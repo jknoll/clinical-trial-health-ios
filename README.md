@@ -14,7 +14,7 @@ A SwiftUI iOS app that reads HealthKit data on-device and sends it directly to t
 
 - **macOS 14+** (Sonoma or later)
 - **Xcode 16+** — [Download from Apple Developer](https://developer.apple.com/xcode/) or the Mac App Store
-- **XcodeGen** (optional, for generating `.xcodeproj` from `project.yml`)
+- **XcodeGen** (required — generates `.xcodeproj` from `project.yml`)
 
 ## Setup
 
@@ -108,7 +108,7 @@ cd ios/   # or wherever this repo is checked out
 xcodegen generate
 ```
 
-This reads `project.yml` and creates `ClinicalTrialHealth.xcodeproj`.
+This reads `project.yml` and creates `ClinicalTrialCompass.xcodeproj`. You must run this before building.
 
 ### 3. Build from CLI
 
@@ -124,7 +124,7 @@ matters on 16 GB machines:
 
 ```bash
 xcodebuild \
-  -project ClinicalTrialHealth.xcodeproj \
+  -project ClinicalTrialCompass.xcodeproj \
   -scheme ClinicalTrialHealth \
   -sdk iphonesimulator \
   -destination 'platform=iOS Simulator,name=iPhone 16e' \
@@ -144,14 +144,14 @@ open -a Simulator
 
 # Build and install
 xcodebuild \
-  -project ClinicalTrialHealth.xcodeproj \
+  -project ClinicalTrialCompass.xcodeproj \
   -scheme ClinicalTrialHealth \
   -sdk iphonesimulator \
   -destination 'platform=iOS Simulator,name=iPhone 16e' \
   install
 
 # Or open in Xcode and press Cmd+R
-open ClinicalTrialHealth.xcodeproj
+open ClinicalTrialCompass.xcodeproj
 ```
 
 ## Usage
