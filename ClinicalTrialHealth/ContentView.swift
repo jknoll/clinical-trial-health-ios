@@ -1,4 +1,5 @@
 import SwiftUI
+import UserNotifications
 
 struct ContentView: View {
     @State private var manager = HealthKitManager()
@@ -8,6 +9,8 @@ struct ContentView: View {
     @State private var isSending = false
     @State private var hasFetched = false
     @State private var importResponse: APIClient.ImportResponse?
+    @State private var notificationsEnabled = false
+    @State private var notificationsDenied = false
 
     var body: some View {
         NavigationStack {
@@ -92,6 +95,27 @@ struct ContentView: View {
                     }
                 }
 
+                // Notifications
+                Section("Notifications") {
+                    if notificationsEnabled {
+                        Label("Notifications Enabled", systemImage: "bell.badge.fill")
+                            .foregroundStyle(.green)
+                    } else if notificationsDenied {
+                        Label("Notifications Denied", systemImage: "bell.slash")
+                            .foregroundStyle(.secondary)
+                        Text("Enable notifications in Settings to receive trial match alerts.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    } else {
+                        Button("Enable Notifications") {
+                            Task { await requestNotificationPermission() }
+                        }
+                        Text("Get notified when future trials match your profile and criteria.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
                 // Debug tools
                 #if DEBUG
                 Section("Debug") {
@@ -105,7 +129,50 @@ struct ContentView: View {
                 #endif
             }
             .navigationTitle("Clinical Trial Health")
+            .task { await checkNotificationStatus() }
         }
+    }
+
+    private func checkNotificationStatus() async {
+        let settings = await UNUserNotificationCenter.current().notificationSettings()
+        switch settings.authorizationStatus {
+        case .authorized, .provisional:
+            notificationsEnabled = true
+        case .denied:
+            notificationsDenied = true
+        default:
+            break
+        }
+    }
+
+    private func requestNotificationPermission() async {
+        do {
+            let granted = try await UNUserNotificationCenter.current()
+                .requestAuthorization(options: [.alert, .badge, .sound])
+            if granted {
+                notificationsEnabled = true
+                await scheduleThankYouNotification()
+            } else {
+                notificationsDenied = true
+            }
+        } catch {
+            notificationsDenied = true
+        }
+    }
+
+    private func scheduleThankYouNotification() async {
+        let content = UNMutableNotificationContent()
+        content.title = "Clinical Trial Health"
+        content.body = "Thanks for enabling push notifications. We will notify you if future trials meet your profile and criteria."
+        content.sound = .default
+
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+        let request = UNNotificationRequest(
+            identifier: "notifications-enabled",
+            content: content,
+            trigger: trigger
+        )
+        try? await UNUserNotificationCenter.current().add(request)
     }
 
     private func sendData() async {
