@@ -14,6 +14,11 @@ final class HealthKitManager {
     var latestHeartRate: Double?    // bpm
     var latestBPSystolic: Double?   // mmHg
     var latestBPDiastolic: Double?  // mmHg
+    var latestTemperature: Double?
+    var latestRespiratoryRate: Double?
+    var latestOxygenSaturation: Double?
+    var latestBloodGlucose: Double?
+    var latestVO2Max: Double?
     var labResults: [LabResult] = []
     var medications: [MedicationRecord] = []
 
@@ -32,6 +37,11 @@ final class HealthKitManager {
             HKQuantityType(.heartRate),
             HKQuantityType(.bloodPressureSystolic),
             HKQuantityType(.bloodPressureDiastolic),
+            HKQuantityType(.bodyTemperature),
+            HKQuantityType(.respiratoryRate),
+            HKQuantityType(.oxygenSaturation),
+            HKQuantityType(.bloodGlucose),
+            HKQuantityType(.vo2Max),
         ]
         // Clinical record types (requires health-records entitlement)
         if let labType = HKClinicalType(.labResultRecord) as? HKObjectType {
@@ -156,6 +166,11 @@ final class HealthKitManager {
         async let hr: Double? = fetchLatestQuantity(.heartRate, unit: .count().unitDivided(by: .minute()))
         async let sys: Double? = fetchLatestQuantity(.bloodPressureSystolic, unit: .millimeterOfMercury())
         async let dia: Double? = fetchLatestQuantity(.bloodPressureDiastolic, unit: .millimeterOfMercury())
+        async let temp: Double? = fetchLatestQuantity(.bodyTemperature, unit: .degreeFahrenheit())
+        async let rr: Double? = fetchLatestQuantity(.respiratoryRate, unit: .count().unitDivided(by: .minute()))
+        async let spo2: Double? = fetchLatestQuantity(.oxygenSaturation, unit: .percent())
+        async let glucose: Double? = fetchLatestQuantity(.bloodGlucose, unit: .gramUnit(with: .milli).unitDivided(by: .literUnit(with: .deci)))
+        async let vo2: Double? = fetchLatestQuantity(.vo2Max, unit: HKUnit(from: "mL/kg*min"))
 
         latestWeight = await w
         latestHeight = await h
@@ -163,6 +178,11 @@ final class HealthKitManager {
         latestHeartRate = await hr
         latestBPSystolic = await sys
         latestBPDiastolic = await dia
+        latestTemperature = await temp
+        latestRespiratoryRate = await rr
+        latestOxygenSaturation = await spo2
+        latestBloodGlucose = await glucose
+        latestVO2Max = await vo2
     }
 
     private func fetchLatestQuantity(_ identifier: HKQuantityTypeIdentifier, unit: HKUnit) async -> Double? {
@@ -233,31 +253,36 @@ final class HealthKitManager {
     // MARK: - Seed sample data (DEBUG only)
 
     #if DEBUG
-    func seedSampleData() async {
+    func seedSampleData() async throws {
         let now = Date()
         let calendar = Calendar.current
+        let restDays: Set<Int> = [5, 12, 22]
 
-        // Step count: ~5,500 steps/day for 30 days
+        // Step count & exercise time for 30 days with realistic variation
         for dayOffset in 0..<30 {
             guard let date = calendar.date(byAdding: .day, value: -dayOffset, to: now) else { continue }
             let start = calendar.startOfDay(for: date)
             guard let end = calendar.date(byAdding: .hour, value: 12, to: start) else { continue }
-            let steps = Double.random(in: 4800...6200)
+
+            // Steps: rest/illness days get 500-1500, normal days get 3000-8500
+            let steps = restDays.contains(dayOffset)
+                ? Double.random(in: 500...1500)
+                : Double.random(in: 3000...8500)
             let stepSample = HKQuantitySample(
                 type: HKQuantityType(.stepCount),
                 quantity: HKQuantity(unit: .count(), doubleValue: steps),
                 start: start, end: end
             )
-            try? await store.save(stepSample)
+            try await store.save(stepSample)
 
-            // Exercise time: ~35 min/day
-            let exerciseMin = Double.random(in: 25...45)
+            // Exercise time: 10-50 min/day for more variation
+            let exerciseMin = Double.random(in: 10...50)
             let exerciseSample = HKQuantitySample(
                 type: HKQuantityType(.appleExerciseTime),
                 quantity: HKQuantity(unit: .minute(), doubleValue: exerciseMin),
                 start: start, end: end
             )
-            try? await store.save(exerciseSample)
+            try await store.save(exerciseSample)
         }
 
         // Vitals (single most-recent samples)
@@ -268,6 +293,9 @@ final class HealthKitManager {
             (.heartRate, 78.0, .count().unitDivided(by: .minute())),
             (.bloodPressureSystolic, 128.0, .millimeterOfMercury()),
             (.bloodPressureDiastolic, 82.0, .millimeterOfMercury()),
+            (.bodyTemperature, 98.4, .degreeFahrenheit()),
+            (.respiratoryRate, 16.0, .count().unitDivided(by: .minute())),
+            (.oxygenSaturation, 0.97, .percent()),
         ]
         for (id, value, unit) in vitals {
             let sample = HKQuantitySample(
@@ -275,7 +303,74 @@ final class HealthKitManager {
                 quantity: HKQuantity(unit: unit, doubleValue: value),
                 start: now, end: now
             )
-            try? await store.save(sample)
+            try await store.save(sample)
+        }
+
+        // Lab-like quantities relevant for clinical trial eligibility
+        let labQuantities: [(HKQuantityTypeIdentifier, Double, HKUnit)] = [
+            (.bloodGlucose, 95.0, .gramUnit(with: .milli).unitDivided(by: .literUnit(with: .deci))),
+            (.vo2Max, 32.0, HKUnit(from: "mL/kg*min")),
+        ]
+        for (id, value, unit) in labQuantities {
+            let sample = HKQuantitySample(
+                type: HKQuantityType(id),
+                quantity: HKQuantity(unit: unit, doubleValue: value),
+                start: now, end: now
+            )
+            try await store.save(sample)
+        }
+
+        // Date of birth (age is a key trial eligibility criterion)
+        // Set DOB to ~52 years old
+        if let dob = calendar.date(from: DateComponents(year: 1974, month: 3, day: 15)) {
+            try await store.save(HKQuantitySample(
+                type: HKQuantityType(.bodyMass),
+                quantity: HKQuantity(unit: .pound(), doubleValue: 165.0),
+                start: dob, end: dob,
+                metadata: [HKMetadataKeyWasUserEntered: true]
+            ))
+        }
+
+        // 30-day heart rate + blood pressure history
+        for dayOffset in 0..<30 {
+            guard let date = calendar.date(byAdding: .day, value: -dayOffset, to: now) else { continue }
+            let start = calendar.startOfDay(for: date)
+            guard let end = calendar.date(byAdding: .hour, value: 1, to: start) else { continue }
+
+            // Heart rate: 72-84 bpm with variation
+            let hr = Double.random(in: 72...84)
+            let hrSample = HKQuantitySample(
+                type: HKQuantityType(.heartRate),
+                quantity: HKQuantity(unit: .count().unitDivided(by: .minute()), doubleValue: hr),
+                start: start, end: end
+            )
+            try await store.save(hrSample)
+
+            // Blood pressure: sys 122-134, dia 78-88
+            let sys = Double.random(in: 122...134)
+            let sysSample = HKQuantitySample(
+                type: HKQuantityType(.bloodPressureSystolic),
+                quantity: HKQuantity(unit: .millimeterOfMercury(), doubleValue: sys),
+                start: start, end: end
+            )
+            try await store.save(sysSample)
+
+            let dia = Double.random(in: 78...88)
+            let diaSample = HKQuantitySample(
+                type: HKQuantityType(.bloodPressureDiastolic),
+                quantity: HKQuantity(unit: .millimeterOfMercury(), doubleValue: dia),
+                start: start, end: end
+            )
+            try await store.save(diaSample)
+
+            // Blood glucose daily variation (fasting 85-105 mg/dL)
+            let glucose = Double.random(in: 85...105)
+            let glucoseSample = HKQuantitySample(
+                type: HKQuantityType(.bloodGlucose),
+                quantity: HKQuantity(unit: .gramUnit(with: .milli).unitDivided(by: .literUnit(with: .deci)), doubleValue: glucose),
+                start: start, end: end
+            )
+            try await store.save(glucoseSample)
         }
     }
     #endif

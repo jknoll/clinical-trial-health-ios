@@ -102,6 +102,32 @@ struct APIClient {
         )
     }
 
+    // MARK: - Fetch session state
+
+    static func fetchSessionState(sessionId: String) async throws -> SessionStateResponse {
+        let url = URL(string: "\(baseURL)/api/sessions/\(sessionId)/state")!
+        let (data, response) = try await URLSession.shared.data(from: url)
+        guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
+            let code = (response as? HTTPURLResponse)?.statusCode ?? -1
+            throw NSError(domain: "APIClient", code: code,
+                          userInfo: [NSLocalizedDescriptionKey: "State fetch failed (\(code))"])
+        }
+        return try JSONDecoder().decode(SessionStateResponse.self, from: data)
+    }
+
+    // MARK: - Fetch matched trials
+
+    static func fetchMatchedTrials(sessionId: String) async throws -> [MatchedTrialResponse] {
+        let url = URL(string: "\(baseURL)/api/sessions/\(sessionId)/matched")!
+        let (data, response) = try await URLSession.shared.data(from: url)
+        guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
+            let code = (response as? HTTPURLResponse)?.statusCode ?? -1
+            throw NSError(domain: "APIClient", code: code,
+                          userInfo: [NSLocalizedDescriptionKey: "Matched trials fetch failed (\(code))"])
+        }
+        return try JSONDecoder().decode([MatchedTrialResponse].self, from: data)
+    }
+
     // MARK: - Send to backend
 
     static func sendHealthData(sessionId: String, payload: HealthKitPayload) async throws -> ImportResponse {

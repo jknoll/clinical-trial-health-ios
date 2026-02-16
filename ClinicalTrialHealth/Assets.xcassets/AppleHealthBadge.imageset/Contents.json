@@ -1,0 +1,15 @@
+{
+  "images" : [
+    {
+      "filename" : "Apple_Health_badge_US-UK_blk_sRGB.svg",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  },
+  "properties" : {
+    "preserves-vector-representation" : true
+  }
+}
